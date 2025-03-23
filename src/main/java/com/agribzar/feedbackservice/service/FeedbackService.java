@@ -3,50 +3,31 @@ package com.agribzar.feedbackservice.service;
 import com.agribzar.feedbackservice.model.Feedback;
 import com.agribzar.feedbackservice.repository.FeedbackRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class FeedbackService {
-
     @Autowired
     private FeedbackRepository feedbackRepository;
 
-    // ✅ Fetch all feedbacks (returns empty list if none exist)
-    public List<Feedback> getAllFeedback() {
-        return feedbackRepository.findAll();
+    @Autowired
+    private JavaMailSender mailSender;
+
+    public Feedback saveFeedback(Feedback feedback) {
+        Feedback savedFeedback = feedbackRepository.save(feedback);
+        sendThankYouEmail(feedback);
+        return savedFeedback;
     }
 
-    // ✅ Fetch a specific feedback by ID
-    public Optional<Feedback> getFeedbackById(Long feedbackId) {
-        return feedbackRepository.findById(feedbackId);
-    }
-
-    // ✅ Add new feedback
-    public Feedback addFeedback(Feedback feedback) {
-        return feedbackRepository.save(feedback);
-    }
-
-    // ✅ Update existing feedback (checks if feedback exists before updating)
-    public Feedback updateFeedback(Long feedbackId, Feedback feedbackDetails) {
-        return feedbackRepository.findById(feedbackId)
-                .map(existingFeedback -> {
-                    existingFeedback.setCustomerName(feedbackDetails.getCustomerName());
-                    existingFeedback.setEmail(feedbackDetails.getEmail());
-                    existingFeedback.setFeedback(feedbackDetails.getFeedback());
-                    return feedbackRepository.save(existingFeedback);
-                })
-                .orElseThrow(() -> new RuntimeException("Feedback with ID " + feedbackId + " not found"));
-    }
-
-    // ✅ Delete feedback by ID (checks if ID exists before deleting)
-    public void deleteFeedback(Long feedbackId) {
-        if (feedbackRepository.existsById(feedbackId)) {
-            feedbackRepository.deleteById(feedbackId);
-        } else {
-            throw new RuntimeException("Feedback with ID " + feedbackId + " not found");
-        }
+    private void sendThankYouEmail(Feedback feedback) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(feedback.getEmail());
+        message.setSubject("Thank You for Your Feedback");
+        message.setText(feedback.getCustomerName() + ",\n\nThank you for submitting your feedback. We will use your valuable inputs for our application's betterment.\n\nRegards,\nAgribzar");
+        mailSender.send(message);
     }
 }
+
+
