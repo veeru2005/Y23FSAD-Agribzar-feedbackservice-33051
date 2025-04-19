@@ -3,19 +3,17 @@ package com.agribzar.feedbackservice.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "feedback")  // Ensure table name matches DB
 public class Feedback {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "customer_name")  // Explicit column mapping
     private String customerName;
-
     private String email;
     private String feedback;
 
     // Getters and Setters
+
     public Long getId() {
         return id;
     }
